@@ -1,5 +1,5 @@
 - hosts: all
-  name: Autoconverted job legacy-bashate-devstack from old job gate-bashate-devstack
+  name: Autoconverted job legacy-pkgcheck-devstack from old job gate-pkgcheck-devstack
   roles:
     - bindep
 
@@ -19,18 +19,18 @@
 
           /usr/zuul-env/bin/zuul-cloner --cache-dir /opt/git \
             git://git.openstack.org \
-            openstack-dev/bashate \
+            openstack-dev/pkgcheck \
             openstack-dev/devstack \
             openstack-infra/devstack-gate
 
-          export BASHATE_INSTALL_PATH=$WORKSPACE/openstack-dev/bashate
+          export pkgcheck_INSTALL_PATH=$WORKSPACE/openstack-dev/pkgcheck
 
           pushd openstack-dev/devstack
-          tox -e bashate
+          tox -e pkgcheck
           popd
 
           pushd openstack-infra/devstack-gate
-          tox -e bashate
+          tox -e pkgcheck
           popd
         executable: /bin/bash
         chdir: '{{ ansible_user_dir }}/workspace'

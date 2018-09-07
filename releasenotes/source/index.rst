@@ -1,5 +1,5 @@
 =====================
-bashate Release Notes
+pkgcheck Release Notes
 =====================
 
 .. release-notes::

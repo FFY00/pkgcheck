@@ -37,8 +37,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bashate'
-copyright = u'2017, Bashate Authors'
+project = u'pkgcheck'
+copyright = u'2017, pkgcheck Authors'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -51,14 +51,14 @@ add_module_names = True
 pygments_style = 'sphinx'
 
 # openstackdocstheme options
-repository_name = 'openstack-dev/bashate'
-bug_project = 'bashate'
+repository_name = 'openstack-dev/pkgcheck'
+bug_project = 'pkgcheck'
 bug_tag = ''
 
 # Grouping the document tree for man pages.
 # List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
 man_pages = [
-    ('man/bashate', 'bashate', u'Style checker for bash scripts',
+    ('man/pkgcheck', 'pkgcheck', u'Style checker for bash scripts',
      [u'OpenStack Foundation'], 1),
 ]
 
@@ -87,7 +87,7 @@ latex_documents = [
     ('index',
      '%s.tex' % project,
      u'%s Documentation' % project,
-     u'Bashate Authors', 'manual'),
+     u'pkgcheck Authors', 'manual'),
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.

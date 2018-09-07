@@ -2,7 +2,7 @@
 fixes:
 
   - Ignore contents of ``heredoc`` values.  ``heredocs`` usually
-    contain content in a foreign syntax so ``bashate`` will no longer
+    contain content in a foreign syntax so ``pkgcheck`` will no longer
     consider them.
 
   - Continuation lines are now parsed into an array, rather than a

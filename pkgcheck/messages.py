@@ -15,12 +15,12 @@ import textwrap
 
 
 class _Message(object):
-    """An individual bashate message.
+    """An individual pkgcheck message.
 
     This should be accessed via the MESSAGES dict keyed by msg_id,
     e.g.
 
-      from bashate.messages import MESSAGES
+      from pkgcheck.messages import MESSAGES
       print(MESSAGES['E123'].msg)
 
     :param msg_id: The unique message id (E...)
@@ -62,7 +62,7 @@ _messages = {
         'default': 'E'
     },
     'E003': {
-        'msg': 'Indent not multiple of 4',
+        'msg': 'Indent not multiple of 2',
         'long_msg':
         """
         Four spaces should be used to offset logical blocks.
@@ -78,28 +78,13 @@ _messages = {
         'default': 'E'
     },
     'E005': {
-        'msg': 'File does not begin with #! or have .sh prefix',
+        'msg': 'Unquoted $srcdir or $pkgdir',
         'long_msg':
         """
-        This can be useful for tools that use either the interpreter
-        directive or the file-exension to select highlighting mode,
-        syntax mode or determine MIME-type, such as file, gerrit and
-        editors.
+        $srcdir and $pkgdir aren't controlled by us so they contain spaces,
+        for this reason they must alway be inside quotes.
         """,
-        'default': 'W'
-    },
-    'E006': {
-        'msg': 'Line too long',
-        'long_msg':
-        """
-        This check mimics the widely accepted convention from PEP8 and
-        many other places that lines longer than 79 columns can not
-        only cause problems when reading/writing code, but also often
-        indicates a bad smell, e.g. too many levels of indentation due
-        to overly complex functions which require refactoring into
-        smaller chunks.
-        """,
-        'default': 'W'
+        'default': 'E'
     },
     'E010': {
         'msg': 'The "do" should be on same line as %s',
@@ -163,7 +148,7 @@ _messages = {
         """,
         'default': 'E'
     },
-    'E042': {
+    'W042': {
         'msg': 'local declaration hides errors',
         'long_msg':
         """
@@ -172,7 +157,7 @@ _messages = {
         """,
         'default': 'W',
     },
-    'E043': {
+    'W043': {
         'msg': 'Arithmetic compound has inconsistent return semantics',
         'long_msg':
         """
@@ -194,6 +179,31 @@ _messages = {
         the use of [[.
         """,
         'default': 'E',
+    },
+    'E060': {
+        'msg': 'No final newline',
+        'long_msg':
+        """
+        The laste line of a PKGBUILD should always be a newline.
+        """,
+        'default': 'E',
+    },
+    'E061': {
+        'msg': 'Multiple final newlines',
+        'long_msg':
+        """
+        We shouldn't have multiple newlines in the end of our PKGBUILD.
+        """,
+        'default': 'E',
+    },
+    'W062': {
+        'msg': 'Unsafe quotes',
+        'long_msg':
+        """
+        Quotes are being utilized in a place where there should be.
+        This might lead to invalid values being passed to makepkg.
+        """,
+        'default': 'W',
     },
 }
 
@@ -227,7 +237,7 @@ def is_default_warning(error):
 
 def print_messages():
 
-    print("\nAvailable bashate checks")
+    print("\nAvailable pkgcheck checks")
     print("------------------------\n")
     for k, v in MESSAGES.items():
         print(" [%(default)s] %(id)s : %(string)s" % {

@@ -14,4 +14,4 @@ import pbr.version
 
 
 __version__ = pbr.version.VersionInfo(
-    'bashate').version_string()
+    'pkgcheck').version_string()

@@ -1,4 +1,4 @@
-from bashate import main
+from pkgcheck import main
 import sys
 
 if __name__ == "__main__":

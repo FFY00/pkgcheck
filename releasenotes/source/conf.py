@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Bashate Release Notes documentation build configuration file, created by
+# pkgcheck Release Notes documentation build configuration file, created by
 # sphinx-quickstart on Tue Nov  3 17:40:50 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -55,8 +55,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Bashate Release Notes'
-copyright = u'2017, Bashate Developers'
+project = u'pkgcheck Release Notes'
+copyright = u'2017, pkgcheck Developers'
 
 # Release notes are version independent
 # The full version, including alpha/beta/rc tags.
@@ -103,8 +103,8 @@ pygments_style = 'sphinx'
 # keep_warnings = False
 
 # openstackdocstheme options
-repository_name = 'openstack-dev/bashate'
-bug_project = 'bashate'
+repository_name = 'openstack-dev/pkgcheck'
+bug_project = 'pkgcheck'
 bug_tag = ''
 
 # -- Options for HTML output ----------------------------------------------
@@ -190,7 +190,7 @@ html_last_updated_fmt = '%Y-%m-%d %H:%M'
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'BashateReleaseNotesdoc'
+htmlhelp_basename = 'pkgcheckReleaseNotesdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -210,9 +210,9 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('index', 'BashateReleaseNotes.tex',
-     u'Bashate Release Notes Documentation',
-     u'Bashate Developers', 'manual'),
+    ('index', 'pkgcheckReleaseNotes.tex',
+     u'pkgcheck Release Notes Documentation',
+     u'pkgcheck Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -241,8 +241,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'bashatereleasenotes', u'Bashate Release Notes Documentation',
-     [u'Bashate Developers'], 1)
+    ('index', 'pkgcheckreleasenotes', u'pkgcheck Release Notes Documentation',
+     [u'pkgcheck Developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -255,8 +255,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'BashateReleaseNotes', u'Bashate Release Notes Documentation',
-     u'Bashate Developers', 'BashateReleaseNotes',
+    ('index', 'pkgcheckReleaseNotes', u'pkgcheck Release Notes Documentation',
+     u'pkgcheck Developers', 'pkgcheckReleaseNotes',
      'Style Checker for Bash.',
      'Miscellaneous'),
 ]

@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = bashate
-omit = bashate/tests/*
+source = pkgcheck
+omit = pkgcheck/tests/*
 
 [report]
 ignore_errors = True

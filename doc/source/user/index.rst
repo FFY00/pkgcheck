@@ -1,5 +1,5 @@
 =============
-Using bashate
+Using pkgcheck
 =============
 
 
@@ -9,5 +9,5 @@ Contents:
    :maxdepth: 2
 
    usage.rst
-   ../man/bashate.rst
+   ../man/pkgcheck.rst
 

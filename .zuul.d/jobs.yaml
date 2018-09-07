@@ -1,15 +1,15 @@
 - project:
     check:
       jobs:
-        - bashate-devstack:
+        - pkgcheck-devstack:
             voting: false
         - openstack-tox-py36:
             voting: false
 
 - job:
-    name: bashate-devstack
+    name: pkgcheck-devstack
     parent: legacy-base
-    run: playbooks/legacy/bashate-devstack/run.yaml
+    run: playbooks/legacy/pkgcheck-devstack/run.yaml
     timeout: 3600
     required-projects:
       - openstack/requirements

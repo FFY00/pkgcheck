@@ -22,7 +22,7 @@ import shlex
 import subprocess
 import sys
 
-from bashate import messages
+from pkgcheck import messages
 
 MESSAGES = messages.MESSAGES
 
@@ -58,12 +58,7 @@ def check_no_trailing_whitespace(line, report):
         report.print_error(MESSAGES['E001'].msg, line)
 
 
-def check_no_long_lines(line, report):
-    if len(line.rstrip("\r\n")) > 79:
-        report.print_error(MESSAGES['E006'].msg, line)
-
-
-def check_indents(logical_line, report):
+def check_indents(logical_line, report, continuing, skip_indent):
     # this is rather complex to handle argument offset indenting;
     # primarily done by emacs.  If there is an argument, it will try
     # to line up the following arguments underneath it, e.g.
@@ -84,22 +79,25 @@ def check_indents(logical_line, report):
     for lineno, line in enumerate(logical_line):
         m = re.search('^(?P<indent>[ \t]+)', line)
         if m:
-            # no tabs, only spaces
-            if re.search('\t', m.group('indent')):
-                report.print_error(MESSAGES['E002'].msg, line)
-
-            offset = len(m.group('indent'))
+            indent = m.group('indent')
+            offset = len(indent.replace('\t', ''))
 
             # the first line and lines without an argument should be
-            # offset by 4 spaces
-            if (lineno == 0) or (arg_offset is None):
-                if (offset % 4) != 0:
-                    report.print_error(MESSAGES['E003'].msg, line)
-            else:
-                # other lines are allowed to line up with the first
-                # argument, or be multiple-of 4 spaces
-                if offset != arg_offset and (offset % 4) != 0:
-                    report.print_error(MESSAGES['E003'].msg, line)
+            # offset by 2 spaces
+            if not skip_indent:
+                if (lineno == 0) or (arg_offset is None):
+                    if (offset % 2) != 0:
+                        report.print_error(MESSAGES['E003'].msg, line)
+                else:
+                    # other lines are allowed to line up with the first
+                    # argument, or be multiple-of 2 spaces
+                    if offset != arg_offset and (offset % 2) != 0:
+                        report.print_error(MESSAGES['E003'].msg, line)
+
+            # no tabs, only spaces
+            if re.search('\t', indent) and not continuing:
+                if not indent.startswith('  ') or not line.endswith(' \\\n'):
+                    report.print_error(MESSAGES['E002'].msg, line)
 
 
 def check_function_decl(line, report):
@@ -135,7 +133,7 @@ def check_arithmetic(line, report):
 
 def check_bare_arithmetic(line, report):
     if line.lstrip().startswith("(("):
-        report.print_error(MESSAGES['E043'].msg, line)
+        report.print_error(MESSAGES['W043'].msg, line)
 
 
 def check_local_subshell(line, report):
@@ -143,15 +141,7 @@ def check_local_subshell(line, report):
     # anywhere with a string being set?  Risk of false positives?x
     if line.lstrip().startswith('local ') and \
        any(s in line for s in ('=$(', '=`', '="$(', '="`')):
-        report.print_error(MESSAGES['E042'].msg, line)
-
-
-def check_hashbang(line, filename, report):
-    # this check only runs on the first line
-    #  maybe this should check for shell?
-    if (not filename.endswith(".sh") and not line.startswith("#!") and
-       not os.path.basename(filename).startswith('.')):
-            report.print_error(MESSAGES['E005'].msg, line)
+        report.print_error(MESSAGES['W042'].msg, line)
 
 
 def check_conditional_expression(line, report):
@@ -191,6 +181,21 @@ def check_conditional_expression(line, report):
             report.print_error(MESSAGES['E044'].msg, line)
         elif tok == ']':
             in_single_bracket = False
+
+
+def check_unquoted(line, report):
+    quoted = False
+    for m in re.compile(r'"|\$(pkgdir|srcdir)|"').finditer(line):
+        if m.group() == '"':
+            quoted = not quoted
+        elif not quoted:
+            report.print_error(MESSAGES['E005'].msg, line)
+            return
+
+
+def check_unneeded_quotes(line, report):
+    if re.search('(pkgname|pkgver|pkgrel|epoch)=(\'|")', line):
+        report.print_error(MESSAGES['W062'].msg, line)
 
 
 def check_syntax(filename, report):
@@ -245,7 +250,7 @@ def check_syntax(filename, report):
                     filelineno=int(m.group('lineno')))
 
 
-class BashateRun(object):
+class pkgcheckRun(object):
 
     def __init__(self):
         self.error_count = 0
@@ -312,6 +317,9 @@ class BashateRun(object):
         # NOTE(mrodden): magic; replace with proper
         # report class when necessary
         report = self
+        skip_indent = continuing = False
+        global nl_count
+        nl_count = 0
 
         for fname in files:
 
@@ -323,18 +331,27 @@ class BashateRun(object):
             # syntax errors when you try to run them.
             check_syntax(fname, report)
 
+            global prev_line
+            prev_line = ''
+
+            def finish(line):
+                global nl_count
+                global prev_line
+                prev_line = line
+                if line == '\n':
+                    nl_count += 1
+                else:
+                    nl_count = 0
+
             for line in fileinput.input(fname):
-                if fileinput.isfirstline():
-
-                    check_hashbang(line, fileinput.filename(), report)
-
-                    if verbose:
-                        print("Running bashate on %s" % fileinput.filename())
+                if fileinput.isfirstline() and verbose:
+                        print("Running pkgcheck on %s" % fileinput.filename())
 
                 # Don't run any tests on comment lines (but remember
                 # inside a heredoc this might be part of the syntax of
                 # an embedded script, just ignore that)
                 if line.lstrip().startswith('#') and not in_heredoc:
+                    finish(line)
                     continue
 
                 # Strip trailing comments. From bash:
@@ -359,6 +376,7 @@ class BashateRun(object):
                     if token:
                         in_heredoc = True
                         logical_line = [line]
+                        finish(line)
                         continue
 
                 # see if this starts a continuation
@@ -366,6 +384,7 @@ class BashateRun(object):
                     if is_continuation(line):
                         in_continuation = True
                         logical_line = [line]
+                        finish(line)
                         continue
 
                 # if we are in a heredoc or continuation, just loop
@@ -375,6 +394,7 @@ class BashateRun(object):
                 if in_heredoc:
                     logical_line.append(line)
                     if not end_of_heredoc(line, token):
+                        finish(line)
                         continue
                     else:
                         in_heredoc = False
@@ -386,13 +406,24 @@ class BashateRun(object):
                 elif in_continuation:
                     logical_line.append(line)
                     if is_continuation(line):
+                        finish(line)
                         continue
                     else:
                         in_continuation = False
                 else:
                     logical_line = [line]
 
-                check_indents(logical_line, report)
+                # skip identation when declaring variables
+                if re.search(re.escape('=('), line) and not re.search(r'\)', line):
+                    skip_indent = True
+                elif re.search(r'\)', prev_line):
+                    skip_indent = False
+
+                # allow tabs when continuing a command
+                continuing = prev_line.endswith(' \\\n')
+
+                check_indents(logical_line, report, continuing, skip_indent)
+                finish(line)
 
                 # at this point, logical_line is an array that holds
                 # the whole continuation.  XXX : historically, we've
@@ -400,19 +431,26 @@ class BashateRun(object):
                 # separatley.  Stick with what works...
                 for line in logical_line:
                     check_no_trailing_whitespace(line, report)
-                    check_no_long_lines(line, report)
                     check_for_do(line, report)
                     check_if_then(line, report)
+                    check_unquoted(line, report)
                     check_function_decl(line, report)
                     check_arithmetic(line, report)
                     check_local_subshell(line, report)
                     check_bare_arithmetic(line, report)
+                    check_unneeded_quotes(line, report)
                     check_conditional_expression(line, report)
 
         # finished processing the file
 
+        # no multiple final newlines
+        if nl_count > 1:
+            report.print_error(MESSAGES['E061'].msg, line)
+
         # last line should always end with a newline
-        if not line.endswith('\n'):
+        if line != '\n':
+            report.print_error(MESSAGES['E060'].msg, line)
+        elif not line.endswith('\n'):
             report.print_error(MESSAGES['E004'].msg, line)
 
 
@@ -422,7 +460,7 @@ def main(args=None):
         args = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        description='A bash script style checker')
+        description='A PKGBUILD style checker')
     parser.add_argument('files', metavar='file', nargs='*',
                         help='files to scan for errors')
     parser.add_argument('-i', '--ignore', help='Rules to ignore')
@@ -443,7 +481,7 @@ def main(args=None):
         parser.print_usage()
         return 1
 
-    run = BashateRun()
+    run = pkgcheckRun()
     run.register_ignores(opts.ignore)
     run.register_warnings(opts.warn)
     run.register_errors(opts.error)
@@ -451,14 +489,14 @@ def main(args=None):
     try:
         run.check_files(files, opts.verbose)
     except IOError as e:
-        print("bashate: %s" % e)
+        print("pkgcheck: %s" % e)
         return 1
 
     if run.warning_count > 0:
-        print("%d bashate warning(s) found" % run.warning_count)
+        print("%d pkgcheck warning(s) found" % run.warning_count)
 
     if run.error_count > 0:
-        print("%d bashate error(s) found" % run.error_count)
+        print("%d pkgcheck error(s) found" % run.error_count)
         return 1
 
     return 0

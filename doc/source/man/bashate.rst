@@ -1,19 +1,19 @@
 ===========================
-:program:`bashate` man page
+:program:`pkgcheck` man page
 ===========================
 
-.. program:: bashate
+.. program:: pkgcheck
 .. highlight:: bash
 
 SYNOPSIS
 ========
 
-:program:`bashate` [options] <file> [files...]
+:program:`pkgcheck` [options] <file> [files...]
 
 DESCRIPTION
 ===========
 
-The :program:`bashate` command line utility is a style-checker for
+The :program:`pkgcheck` command line utility is a style-checker for
 bash scripts.
 
 The name is derived from :program:`pep8`, a Python lint-type tool.
@@ -32,11 +32,11 @@ EXAMPLES
 
 Run all tests on a single file::
 
-    bashate file.sh
+    pkgcheck file.sh
 
 Run tests on several files, while also ignoring several errors::
 
-    bashate -i E010,E011 file.sh file2.sh
+    pkgcheck -i E010,E011 file.sh file2.sh
 
 BUGS
 ====

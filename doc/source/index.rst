@@ -1,5 +1,5 @@
 ===================================
-Welcome to bashate's documentation!
+Welcome to pkgcheck's documentation!
 ===================================
 
 Contents:

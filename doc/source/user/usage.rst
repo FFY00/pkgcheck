@@ -2,6 +2,6 @@
 Usage
 ========
 
-To use bashate in a project::
+To use pkgcheck in a project::
 
-	import bashate
+	import pkgcheck

@@ -3,4 +3,4 @@
 See also
 ~~~~~~~~
 
-See also :doc:`/man/bashate`.
+See also :doc:`/man/pkgcheck`.
