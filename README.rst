@@ -6,6 +6,16 @@ This is a bashate fork for Arch Linux's PKGBUILDs.
 
 - Free software: Apache license
 
+Install
+-------
+
+``pip install -u pkgcheck-arch``
+
+Use
+---
+
+``pkgcheck path/to/PKGBUILD``
+
 Currently Supported Checks
 --------------------------
 
