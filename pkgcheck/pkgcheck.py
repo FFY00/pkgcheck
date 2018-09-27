@@ -185,7 +185,7 @@ def check_conditional_expression(line, report):
 
 def check_unquoted(line, report):
     quoted = False
-    for m in re.compile(r'"|\$(pkgdir|srcdir)|"').finditer(line):
+    for m in re.compile(r'"|\$(|{).*(pkgdir|srcdir)|"').finditer(line):
         if m.group() == '"':
             quoted = not quoted
         elif not quoted:
