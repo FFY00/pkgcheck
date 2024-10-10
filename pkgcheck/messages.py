@@ -205,6 +205,15 @@ _messages = {
         """,
         'default': 'W',
     },
+    'W063': {
+        'msg': 'Found base-devel dependencies in makedepends: {packages}',
+        'long_msg':
+        """
+        The package base-devel is assumed to be already installed when building with makepkg.
+        Dependencies of this package should not be included in makedepends array.
+        """,
+        'default': 'W',
+    },
 }
 
 MESSAGES = {}
