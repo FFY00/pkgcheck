@@ -22,34 +22,35 @@ import shlex
 import subprocess
 import sys
 
-from pkgcheck import messages
+#from pkgcheck import messages
+import messages
 
 MESSAGES = messages.MESSAGES
 
 
 def is_continuation(line):
-    return re.search('\\\\\s*$', line)
+    return re.search(r'\\\s*$', line)
 
 
 def check_for_do(line, report):
     if not is_continuation(line):
-        match = re.match('^\s*(for|while|until)\s', line)
+        match = re.match(r'^\s*(for|while|until)\s', line)
         if match:
             operator = match.group(1).strip()
             if operator == "for":
                 # "for i in ..." and "for ((" is bash, but
                 # "for (" is likely from an embedded awk script,
                 # so skip it
-                if re.search('for \([^\(]', line):
+                if re.search(r'for \([^\(]', line):
                     return
-            if not re.search(';\s*do$', line):
+            if not re.search(r';\s*do$', line):
                 report.print_error((MESSAGES['E010'].msg % operator), line)
 
 
 def check_if_then(line, report):
     if not is_continuation(line):
-        if re.search('^\s*(el)?if \[', line):
-            if not re.search(';\s*then$', line):
+        if re.search(r'^\s*(el)?if \[', line):
+            if not re.search(r';\s*then$', line):
                 report.print_error(MESSAGES['E011'].msg, line)
 
 
@@ -68,7 +69,7 @@ def check_indents(logical_line, report, continuing, skip_indent):
 
     # Find the offset of the first argument of the command (if it has
     # one)
-    m = re.search('^(?P<indent>[ \t]+)?(?P<cmd>\S+)(?P<ws>\s+)(?P<arg>\S+)',
+    m = re.search(r'^(?P<indent>[ \t]+)?(?P<cmd>\S+)(?P<ws>\s+)(?P<arg>\S+)',
                   logical_line[0])
     arg_offset = None
     if m:
@@ -103,12 +104,12 @@ def check_indents(logical_line, report, continuing, skip_indent):
 def check_function_decl(line, report):
     failed = False
     if line.startswith("function"):
-        if not re.search('^function [\w-]* \{$', line):
+        if not re.search(r'^function [\w-]* \{$', line):
             failed = True
     else:
         # catch the case without "function", e.g.
         # things like '^foo() {'
-        if re.search('^\s*?\(\)\s*?\{', line):
+        if re.search(r'^\s*?\(\)\s*?\{', line):
             failed = True
 
     if failed:
@@ -118,12 +119,12 @@ def check_function_decl(line, report):
 def starts_heredoc(line):
     # note, watch out for <<EOF and <<'EOF' ; quotes in the
     # deliminator are part of syntax
-    m = re.search("[^<]<<\s*([\'\"]?)(?P<token>\w+)([\'\"]?)", line)
+    m = re.search(r"[^<]<<\s*([\'\"]?)(?P<token>\w+)([\'\"]?)", line)
     return m.group('token') if m else False
 
 
 def end_of_heredoc(line, token):
-    return token and re.search("^%s\s*$" % token, line)
+    return token and re.search(r"^%s\s*$" % token, line)
 
 
 def check_arithmetic(line, report):
@@ -196,6 +197,31 @@ def check_unquoted(line, report):
 def check_unneeded_quotes(line, report):
     if re.search('(pkgname|pkgver|pkgrel|epoch)=(\'|")', line):
         report.print_error(MESSAGES['W062'].msg, line)
+
+def fetch_base_devel_packages():
+    try:
+        result = subprocess.run(['pacman', '-Si', 'base-devel'], capture_output=True, text=True, check=True)
+        
+        dependencies = []
+        for line in result.stdout.splitlines():
+            if line.startswith("Depends On"):
+                dependencies = line.split(":")[1].strip().split()
+                break
+        return dependencies
+    except subprocess.CalledProcessError as e:
+        print("Failed to fetch base-devel dependencies:", e)
+        return []
+
+def check_base_devel(line, report):
+    base_devel_packages = fetch_base_devel_packages()
+    base_devel_packages.append('base-devel')
+    
+    if re.search(r'^makedepends=', line):
+        found_packages = [pkg for pkg in base_devel_packages if re.search(rf'\b{pkg}\b', line)]
+        if found_packages:
+            found_packages_str = ', '.join(found_packages)
+            error_message = MESSAGES['W063'].msg.format(packages=found_packages_str)
+            report.print_error(error_message, line)
 
 
 def check_syntax(filename, report):
@@ -440,6 +466,7 @@ class pkgcheckRun(object):
                     check_bare_arithmetic(line, report)
                     check_unneeded_quotes(line, report)
                     check_conditional_expression(line, report)
+                    check_base_devel(line, report)
 
         # finished processing the file
 
