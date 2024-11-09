@@ -22,8 +22,7 @@ import shlex
 import subprocess
 import sys
 
-#from pkgcheck import messages
-import messages
+from pkgcheck import messages
 
 MESSAGES = messages.MESSAGES
 
