@@ -182,16 +182,29 @@ def check_conditional_expression(line, report):
         elif tok == ']':
             in_single_bracket = False
 
+# Compile once, reuse
+UNQUOTED_RE = re.compile(
+    r'"'                                   # double quote
+    r'|\$(?:pkgdir|srcdir)(?![A-Za-z0-9_])'  # $pkgdir or $srcdir, not followed by var-char
+    r'|\$\{(?:pkgdir|srcdir)\}'           # ${pkgdir} or ${srcdir}
+)
 
 def check_unquoted(line, report):
     quoted = False
-    for m in re.compile(r'"|\$(|{).*(pkgdir|srcdir)|"').finditer(line):
-        if m.group() == '"':
-            quoted = not quoted
-        elif not quoted:
-            report.print_error(MESSAGES['E005'].msg, line)
-            return
 
+    for m in UNQUOTED_RE.finditer(line):
+        token = m.group(0)
+
+        if token == '"':
+            # ignore escaped quotes: \" shouldn't toggle
+            if m.start() > 0 and line[m.start() - 1] == '\\':
+                continue
+            quoted = not quoted
+        else:
+            # token is one of: $pkgdir, $srcdir, ${pkgdir}, ${srcdir}
+            if not quoted:
+                report.print_error(MESSAGES['E005'].msg, line)
+                return
 
 def check_unneeded_quotes(line, report):
     if re.search('(pkgname|pkgver|pkgrel|epoch)=(\'|")', line):
